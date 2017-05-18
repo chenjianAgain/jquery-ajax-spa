@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "gulp task for SPA client",
   "scripts": {
+    "start": "ws",
     "postinstall": "gulp default",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "local-web-server": {
+  	"port": 8100,
+  	"forbid": "*.json"
   },
   "author": "Ian",
   "license": "ISC",
   "dependencies": {
+    "local-web-server": "^1.1.0",
     "babel-preset-es2015": "^6.22.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",

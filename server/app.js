@@ -4,7 +4,7 @@ var express = require("express"),
     bodyParser = require("body-parser"),
     expressSanitizer = require("express-sanitizer");
 
-mongoose.connect("mongodb://localhost/todo_app");
+mongoose.connect("mongodb://chenjian:chenjian@ds047792.mlab.com:47792/todo_app");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(expressSanitizer());
 
@@ -15,9 +15,9 @@ var todoSchema = new mongoose.Schema({
 var Todo = mongoose.model("Todo", todoSchema);
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:8000");
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
   next();
 });
 

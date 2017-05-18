@@ -1,29 +1,33 @@
 'use strict';
 
+var actionUrl = 'https://7d9iex0e8j.execute-api.us-east-1.amazonaws.com/dev/todos';
+
+function getTemplateString(todo) {
+	return '\n\t\t\t<li class="list-group-item">\n\t\t\t\t<div class="edit-item-form">\n\t\t\t\t\t<div class="form-group">\n\t\t\t\t\t\t<label for="' + todo._id + '">Item Text</label>\n\t\t\t\t\t\t<input type="text" value="' + todo.text + '" name="todo[text]" class="form-control" id="' + todo._id + '">\n\t\t\t\t\t</div>\n\t\t\t\t\t<button class="btn btn-primary update-item-button">Update Item</button>\n\t\t\t\t</div>\n\t\t\t\t<span class="lead">\n\t\t\t\t\t' + todo.text + '\n\t\t\t\t</span>\n\t\t\t\t<div class="pull-right">\n\t\t\t\t\t<button class="btn btn-sm btn-warning edit-button">Edit</button>\n\t\t\t\t\t<button class="btn btn-sm btn-danger delete-item-button">Delete</button>\n\t\t\t\t</div>\n\t\t\t\t<div class="clearfix"></div>\n\t\t\t</li>\n\t\t\t';
+}
+
 $(document).ready(function () {
 
 	// Get All List Items
 
-	$.get('http://localhost:3000/todos', function (todos) {
+	$.get(actionUrl, function (todos) {
 		todos.forEach(function (todo) {
-			$('#todo-list').append('\n\t\t\t\t<li class="list-group-item">\n\t\t\t\t\t<form action="/todos/' + todo._id + '" method="POST" class="edit-item-form">\n\t\t\t\t\t\t<div class="form-group">\n\t\t\t\t\t\t\t<label for="' + todo._id + '">Item Text</label>\n\t\t\t\t\t\t\t<input type="text" value="' + todo.text + '" name="todo[text]" class="form-control" id="' + todo._id + '">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<button class="btn btn-primary">Update Item</button>\n\t\t\t\t\t</form>\n\t\t\t\t\t<span class="lead">\n\t\t\t\t\t\t' + todo.text + '\n\t\t\t\t\t</span>\n\t\t\t\t\t<div class="pull-right">\n\t\t\t\t\t\t<button class="btn btn-sm btn-warning edit-button">Edit</button>\n\t\t\t\t\t\t<form style="display: inline" method="POST" action="/todos/' + todo._id + '" class="delete-item-form">\n\t\t\t\t\t\t\t<button type="submit" class="btn btn-sm btn-danger">Delete</button>\n\t\t\t\t\t\t</form>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="clearfix"></div>\n\t\t\t\t</li>\n\t\t\t\t');
+			$('#todo-list').append(getTemplateString(todo));
 		});
 	});
 
 	// Create To Do Item
 
-	$('#new-todo-form').submit(function (e) {
-		e.preventDefault();
-
-		var toDoItem = $(this).serialize();
-
-		$.post('http://localhost:3000/todos', toDoItem, function (data) {
-			if (!data.error) {
-				$('#todo-list').append('\n\t\t\t\t\t<li class="list-group-item">\n\t\t\t\t\t\t<form action="/todos/' + data._id + '" method="POST" class="edit-item-form">\n\t\t\t\t\t\t\t<div class="form-group">\n\t\t\t\t\t\t\t\t<label for="' + data._id + '">Item Text</label>\n\t\t\t\t\t\t\t\t<input type="text" value="' + data.text + '" name="todo[text]" class="form-control" id="' + data._id + '">\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<button class="btn btn-primary">Update Item</button>\n\t\t\t\t\t\t</form>\n\t\t\t\t\t\t<span class="lead">\n\t\t\t\t\t\t\t' + data.text + '\n\t\t\t\t\t\t</span>\n\t\t\t\t\t\t<div class="pull-right">\n\t\t\t\t\t\t\t<button class="btn btn-sm btn-warning edit-button">Edit</button>\n\t\t\t\t\t\t\t<form style="display: inline" method="POST" action="/todos/' + data._id + '" class="delete-item-form">\n\t\t\t\t\t\t\t\t<button type="submit" class="btn btn-sm btn-danger">Delete</button>\n\t\t\t\t\t\t\t</form>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class="clearfix"></div>\n\t\t\t\t\t</li>\n\t\t\t\t\t');
-				$('#new-todo-form').find('.form-control').val('');
-			} else {
-				$('#new-todo-form').prepend('\n\t\t\t\t\t\t<div class="alert alert-danger">\n\t\t\t\t\t\t  <strong>' + data.error + '</strong> \n\t\t\t\t\t\t</div>\n\t\t\t\t\t');
-				$('.alert-danger').delay(2000).fadeOut();
+	$('#create-item-button').on('click', function () {
+		var textval = $("#new-item").val();
+		$("#new-item").val('');
+		$.ajax({
+			url: actionUrl,
+			data: JSON.stringify({ text: textval }),
+			type: 'POST',
+			dataType: 'json',
+			success: function success(todo) {
+				$('#todo-list').append(getTemplateString(todo));
 			}
 		});
 	});
@@ -35,36 +39,36 @@ $(document).ready(function () {
 		$(this).blur();
 	});
 
-	$('#todo-list').on('submit', '.edit-item-form', function (e) {
-		e.preventDefault();
-		var toDoItem = $(this).serialize();
-		var actionUrl = 'http://localhost:3000' + $(this).attr('action');
-		var $originalItem = $(this).parent('.list-group-item');
+	$('#todo-list').on('click', '.update-item-button', function () {
+		var originalItem = $(this).parent().parent('.list-group-item');
+		var idVal = originalItem.find('.form-control').attr('id');
+		var newVal = $(this).parent().parent('.list-group-item').find('input').val();
 		$.ajax({
 			url: actionUrl,
-			data: toDoItem,
+			data: JSON.stringify({ _id: idVal, text: newVal }),
 			type: 'PUT',
-			originalItem: $originalItem,
+			dataType: 'json',
 			success: function success(data) {
-				this.originalItem.html('\n\t\t\t\t\t<form action="/todos/' + data._id + '" method="POST" class="edit-item-form">\n\t\t\t\t\t\t<div class="form-group">\n\t\t\t\t\t\t\t<label for="' + data._id + '">Item Text</label>\n\t\t\t\t\t\t\t<input type="text" value="' + data.text + '" name="todo[text]" class="form-control" id="' + data._id + '">\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<button class="btn btn-primary">Update Item</button>\n\t\t\t\t\t</form>\n\t\t\t\t\t<span class="lead">\n\t\t\t\t\t\t' + data.text + '\n\t\t\t\t\t</span>\n\t\t\t\t\t<div class="pull-right">\n\t\t\t\t\t\t<button class="btn btn-sm btn-warning edit-button">Edit</button>\n\t\t\t\t\t\t<form style="display: inline" method="POST" action="/todos/' + data._id + '" class="delete-item-form">\n\t\t\t\t\t\t\t<button type="submit" class="btn btn-sm btn-danger">Delete</button>\n\t\t\t\t\t\t</form>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class="clearfix"></div>\n\t\t\t\t\t');
+				originalItem.find('span').html('' + data.text);
+				originalItem.find('.form-control').val('' + data.text);
 			}
 		});
 	});
 
 	// Delete To Do Item
 
-	$('#todo-list').on('submit', '.delete-item-form', function (e) {
-		e.preventDefault();
+	$('#todo-list').on('click', '.delete-item-button', function () {
 		var confirmResponse = confirm('Are you sure?');
 		if (confirmResponse) {
-			var actionUrl = 'http://localhost:3000' + $(this).attr('action');
-			var $itemToDelete = $(this).closest('.list-group-item');
+			var itemToDelete = $(this).parent().parent('.list-group-item');
+			var idVal = itemToDelete.find('.form-control').attr('id');
 			$.ajax({
 				url: actionUrl,
 				type: 'DELETE',
-				itemToDelete: $itemToDelete,
+				dataType: 'json',
+				data: JSON.stringify({ _id: idVal }),
 				success: function success(data) {
-					this.itemToDelete.remove();
+					itemToDelete.remove();
 				}
 			});
 		} else {
